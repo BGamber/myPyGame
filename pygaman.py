@@ -11,11 +11,12 @@ class Pygaman(pygame.sprite.Sprite):
         self.y = y
         self.moveSpeed = 0
         self.vertSpeed = 0
-        self.img1 = pygame.image.load('pygaman1.png').convert_alpha()
-        self.img2 = pygame.image.load('pygaman2.png').convert_alpha()
-        self.sprites = [self.img1, self.img2]
+        self.run1 = pygame.image.load('pygaman1.png').convert_alpha()
+        self.run2 = pygame.image.load('pygaman2.png').convert_alpha()
+        self.jump = pygame.image.load('pygaman3.png').convert_alpha()
+        self.run_anim = [self.run1, self.run2]
         self.direction = 'right'
-        self.rect = self.img1.get_rect()
+        self.rect = self.run1.get_rect()
         self.jumpCount = 0
 
     def update(self, window):
@@ -27,15 +28,20 @@ class Pygaman(pygame.sprite.Sprite):
     def render(self, frames=20, counter=0):
         frame = counter % frames
         sprite_index = frame / (frames / 2)
-        if self.moveSpeed > 0:
-            return self.sprites[sprite_index]
+        if self.vertSpeed != 0:
+            if self.direction == 'right':
+                return self.jump
+            elif self.direction == 'left':
+                return pygame.transform.flip(self.jump, True, False)
+        elif self.moveSpeed > 0:
+            return self.run_anim[sprite_index]
         elif self.moveSpeed < 0:
-            return pygame.transform.flip(self.sprites[sprite_index], True, False)
+            return pygame.transform.flip(self.run_anim[sprite_index], True, False)
         else:
             if self.direction == 'right':
-                return self.sprites[0]
+                return self.run_anim[0]
             elif self.direction == 'left':
-                return pygame.transform.flip(self.sprites[0], True, False)
+                return pygame.transform.flip(self.run_anim[0], True, False)
 
     def gravity(self, window):
         if (self.y + self.rect.height) >= (window.height - self.vertSpeed) and self.vertSpeed > 0:
