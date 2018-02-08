@@ -79,8 +79,16 @@ class Pellet(pygame.sprite.Sprite):
 class Baddie(object):
     pass
 
-class Platform(object):
-    pass
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height):
+        super(Platform, self).__init__()
+        self.x = x
+        self.y = y
+        self. width = width
+        self.height = height
+
+    def getRect(self):
+        return (self.x, self.y, self.width, self.height)
 
 class Window(object):
     def __init__(self, width, height):
@@ -90,14 +98,35 @@ class Window(object):
 
 def main():
     bg = (10, 25, 50)
+    white = (255, 255, 255)
     pygame.init()
     window = Window(800, 600)
     clock = pygame.time.Clock()
 
-    player = Pygaman(40, 40)
+    player = Pygaman(40, 550)
 
     pellets = pygame.sprite.Group()
 
+    stage0 = [
+        Platform(400, 600, 50, 10)
+    ]
+
+    stage1 = [
+        Platform(50, 95, 50, 10),
+        Platform(150, 145, 500, 10),
+        Platform(700, 195, 50, 10),
+        Platform(600, 245, 50, 10),
+        Platform(500, 295, 50, 10),
+        Platform(250, 345, 100, 10),
+        Platform(400, 345, 100, 10),
+        Platform(100, 395, 100, 10),
+        Platform(200, 445, 50, 10),
+        Platform(250, 495, 50, 10),
+        Platform(300, 545, 50, 10)
+    ]
+
+    stages = [stage0, stage1]
+    current_stage = 1 ## Reset to 0 for game start
     counter = 0
     playing = True
     while playing:
@@ -126,6 +155,8 @@ def main():
         for pellet in pellets:
             pellet.update(window)
             window.screen.blit(pellet.render(counter=counter), (pellet.x, pellet.y))
+        for platform in stages[current_stage]:
+            pygame.draw.rect(window.screen, white, platform.getRect(), 0)
         pygame.display.update()
         clock.tick(60)
     
