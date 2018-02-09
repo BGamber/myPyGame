@@ -74,8 +74,10 @@ class Pellet(pygame.sprite.Sprite):
         self.sprites = [self.img1, self.img2]
         self.direction = direction
         self.rect = self.img1.get_rect()
+        self.target = type(Baddie)
 
     def update(self, window):
+        self.rect = pygame.Rect(self.x, self.y, self.rect.height, self.rect.width)
         if self.direction == 'left':
             self.speed = -self.speed
             self.direction = 'leftx'
@@ -83,13 +85,27 @@ class Pellet(pygame.sprite.Sprite):
         if self.x > window.width or self.x < 0:
             self.kill()
 
+    # def 
+
     def render(self, frames=20, counter=0):
         frame = counter % frames
         sprite_index = frame / (frames / len(self.sprites))
         return self.sprites[sprite_index]
 
-class Baddie(object):
-    pass
+class BadPellet(Pellet):
+    def __init__(self, x, y, direction):
+        super(BadPellet, self).__init__()
+        self.img1 = pygame.image.load('badpellet1.png').convert_alpha()
+        self.img2 = pygame.image.load('badpellet2.png').convert_alpha()
+        self.sprites = [self.img1, self.img2]
+        self.target = type(Pygaman)
+
+class Baddie(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction='right', moving=False):
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.moving = moving
 
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
@@ -164,7 +180,8 @@ def main():
                 player.vert_speed = -7
                 player.jump_count += 1
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                pellets.add(Pellet(player.x, player.y + 10, player.direction, speedmod=player.move_speed))
+                if len(pellets) < 4:
+                    pellets.add(Pellet(player.x, player.y + 10, player.direction, speedmod=player.move_speed))
             if event.type == pygame.QUIT:
                 playing = False
 
