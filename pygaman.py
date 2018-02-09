@@ -219,7 +219,7 @@ def main():
     ]
 
     enemies1 = [
-        Baddie(295, 540, moving=True)
+        Baddie(145, 140, moving=True)
     ]
 
     stages = [stage0, stage1]
