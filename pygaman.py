@@ -67,53 +67,7 @@ class Pygaman(pygame.sprite.Sprite):
         if len(pellets) < 4:
             pellets.add(Pellet(self.x, self.y + 10, self.direction, speedmod=self.move_speed))
 
-# Bullets fired by the player!
-class Pellet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, speedmod=0):
-        super(Pellet, self).__init__()
-        self.x = x
-        self.y = y
-        self.speed = 5
-        self.speedmod = speedmod
-        self.img1 = pygame.image.load('pellet1.png').convert_alpha()
-        self.img2 = pygame.image.load('pellet2.png').convert_alpha()
-        self.sprites = [self.img1, self.img2]
-        self.direction = direction
-        self.rect = self.img1.get_rect()
-        self.target = type(Baddie)
-
-    def update(self, window):
-        self.rect = pygame.Rect(self.x, self.y, self.rect.height, self.rect.width)
-        if self.direction == 'left' and self.speed > 0:
-            self.speed = -self.speed
-        self.x += self.speed + self.speedmod
-        if self.x > window.width or self.x < 0:
-            self.kill()
-
-    def detect_collision(self, targets):
-        for target in targets:
-            if self.rect.colliderect(target.rect):
-                target.kill()
-                self.kill()
-
-    def render(self, frames=20, counter=0):
-        frame = counter % frames
-        sprite_index = frame / (frames / len(self.sprites))
-        return self.sprites[sprite_index]
-
-class BadPellet(Pellet):
-    def __init__(self, x, y, direction):
-        super(BadPellet, self).__init__()
-        self.img1 = pygame.image.load('badpellet1.png').convert_alpha()
-        self.img2 = pygame.image.load('badpellet2.png').convert_alpha()
-        self.sprites = [self.img1, self.img2]
-        self.target = type(Pygaman)
-    
-    def detect_collision(self, player):
-        if self.rect.colliderect(player.rect):
-            player.kill()
-            self.kill()
-
+# Enemies! Get past them all to win!
 class Baddie(pygame.sprite.Sprite):
     def __init__(self, x, y, move_speed=4, direction='right', moving=False):
         super(Baddie, self).__init__()
@@ -126,10 +80,12 @@ class Baddie(pygame.sprite.Sprite):
         self.vert_speed = 0
         self.direction = direction
         self.moving = moving
+        self.shoot_counter = 0
 
     def update(self, window, platforms):
-        self.rect = pygame.Rect(self.x, self.y, 30, 40)
+        self.rect = pygame.Rect(self.x, self.y, 40, 40)
         self.gravity(window)
+        self.shoot_counter += 1
 
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
@@ -165,7 +121,73 @@ class Baddie(pygame.sprite.Sprite):
             self.vert_speed += 0.5
 
     def shoot(self, badpellets):
-        badpellets.add(BadPellet(self.x, self.y + 20, self.direction))
+        badpellets.add(BadPellet(self.x, self.y + 10, self.direction))
+
+# Bullets fired by the player!
+class Pellet(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction, speedmod=0):
+        super(Pellet, self).__init__()
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.speed = 5
+        self.speedmod = speedmod
+        self.img1 = pygame.image.load('pellet1.png').convert_alpha()
+        self.img2 = pygame.image.load('pellet2.png').convert_alpha()
+        self.sprites = [self.img1, self.img2]
+        self.rect = self.img1.get_rect()
+        self.target = type(Baddie)
+
+    def update(self, window, baddies):
+        self.rect = pygame.Rect(self.x, self.y, self.rect.height, self.rect.width)
+        if self.direction == 'left' and self.speed > 0:
+            self.speed = -self.speed
+        self.x += self.speed + self.speedmod
+        if self.x > window.width or self.x < 0:
+            self.kill()
+        self.detect_collision(baddies)
+
+    def detect_collision(self, targets):
+        for target in targets:
+            if self.rect.colliderect(target.rect):
+                target.kill()
+                self.kill()
+
+    def render(self, frames=20, counter=0):
+        frame = counter % frames
+        sprite_index = frame / (frames / len(self.sprites))
+        return self.sprites[sprite_index]
+
+class BadPellet(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        super(BadPellet, self).__init__()
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.speed = 6
+        self.img1 = pygame.image.load('badpellet1.png').convert_alpha()
+        self.img2 = pygame.image.load('badpellet2.png').convert_alpha()
+        self.sprites = [self.img1, self.img2]
+        self.rect = self.img1.get_rect()
+        self.target = type(Pygaman)
+
+    def update(self, window, player):
+        self.rect = pygame.Rect(self.x, self.y, self.rect.height, self.rect.width)
+        if self.direction == 'left' and self.speed > 0:
+            self.speed = -self.speed
+        self.x += self.speed
+        if self.x > window.width or self.x < 0:
+            self.kill()
+        self.detect_collision(player)
+    
+    def detect_collision(self, player):
+        if self.rect.colliderect(player.rect):
+            print 'Hit the player!'
+
+    def render(self, frames=20, counter=0):
+        frame = counter % frames
+        sprite_index = frame / (frames / len(self.sprites))
+        return self.sprites[sprite_index]
 
 # Platforms for the player to jump on!
 class Platform(pygame.sprite.Sprite):
@@ -266,10 +288,15 @@ def main():
         window.screen.blit(player.render(counter=counter), (player.x, player.y))
         for baddie in baddies:
             baddie.update(window, platforms)
+            if counter % 120 == 0:
+                baddie.shoot(badpellets)
             window.screen.blit(baddie.render(counter=counter), (baddie.x, baddie.y))
         for pellet in pellets:
-            pellet.update(window)
+            pellet.update(window, baddies)
             window.screen.blit(pellet.render(counter=counter), (pellet.x, pellet.y))
+        for badpellet in badpellets:
+            badpellet.update(window, player)
+            window.screen.blit(badpellet.render(counter=counter), (badpellet.x, badpellet.y))
         for platform in stages[current_stage]:
             pygame.draw.rect(window.screen, white, platform.getRect(), 0)
         pygame.display.update()
