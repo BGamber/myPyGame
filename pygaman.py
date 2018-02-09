@@ -182,7 +182,8 @@ class BadPellet(pygame.sprite.Sprite):
     
     def detect_collision(self, player):
         if self.rect.colliderect(player.rect):
-            print 'Hit the player!'
+            player.kill()
+            self.kill()
 
     def render(self, frames=20, counter=0):
         frame = counter % frames
@@ -216,7 +217,9 @@ def main():
     window = Window(800, 600)
     clock = pygame.time.Clock()
 
+    players = pygame.sprite.Group()
     player = Pygaman(40, 550)
+    players.add(player)
     pellets = pygame.sprite.Group()
 
     baddies = pygame.sprite.Group()
@@ -254,6 +257,7 @@ def main():
     enemies = [enemies0, enemies1]
     current_stage = 1 ## Reset to 0 for game start
     counter = 0
+    death_timer = 0
     playing = True
     while playing:
         if counter == 0:
@@ -284,8 +288,9 @@ def main():
                 playing = False
 
         window.screen.fill(bg)
-        player.update(window, platforms)
-        window.screen.blit(player.render(counter=counter), (player.x, player.y))
+        for player in players:
+            player.update(window, platforms)
+            window.screen.blit(player.render(counter=counter), (player.x, player.y))
         for baddie in baddies:
             baddie.update(window, platforms)
             if counter % 120 == 0:
@@ -299,6 +304,11 @@ def main():
             window.screen.blit(badpellet.render(counter=counter), (badpellet.x, badpellet.y))
         for platform in stages[current_stage]:
             pygame.draw.rect(window.screen, white, platform.getRect(), 0)
+        if len(players) < 1:
+            # TODO: Put 'YOU LOSE' on-screen
+            death_timer += 1
+            if death_timer >= 100:
+                playing = False
         pygame.display.update()
         clock.tick(60)
     
