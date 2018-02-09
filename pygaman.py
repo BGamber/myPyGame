@@ -62,6 +62,10 @@ class Pygaman(pygame.sprite.Sprite):
         elif (self.y + self.rect.height) < window.height:
             self.vert_speed += 0.5
 
+    def shoot(self, pellets):
+        if len(pellets) < 4:
+            pellets.add(Pellet(self.x, self.y + 10, self.direction, speedmod=self.move_speed))
+
 class Pellet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speedmod=0):
         super(Pellet, self).__init__()
@@ -85,7 +89,11 @@ class Pellet(pygame.sprite.Sprite):
         if self.x > window.width or self.x < 0:
             self.kill()
 
-    # def 
+    def detect_collision(self, targets):
+        for target in targets:
+            if self.rect.colliderect(target.rect):
+                target.kill()
+                self.kill()
 
     def render(self, frames=20, counter=0):
         frame = counter % frames
@@ -99,6 +107,11 @@ class BadPellet(Pellet):
         self.img2 = pygame.image.load('badpellet2.png').convert_alpha()
         self.sprites = [self.img1, self.img2]
         self.target = type(Pygaman)
+    
+    def detect_collision(self, player):
+        if self.rect.colliderect(player.rect):
+            player.kill()
+            self.kill()
 
 class Baddie(pygame.sprite.Sprite):
     def __init__(self, x, y, direction='right', moving=False):
@@ -106,6 +119,9 @@ class Baddie(pygame.sprite.Sprite):
         self.y = y
         self.direction = direction
         self.moving = moving
+
+    def shoot(self, badpellets):
+        badpellets.add(BadPellet(self.x, self.y + 20, self.direction))
 
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
@@ -135,6 +151,7 @@ def main():
     player = Pygaman(40, 550)
 
     pellets = pygame.sprite.Group()
+    badpellets = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
 
     stage0 = [
@@ -180,8 +197,7 @@ def main():
                 player.vert_speed = -7
                 player.jump_count += 1
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                if len(pellets) < 4:
-                    pellets.add(Pellet(player.x, player.y + 10, player.direction, speedmod=player.move_speed))
+                player.shoot(pellets)
             if event.type == pygame.QUIT:
                 playing = False
 
