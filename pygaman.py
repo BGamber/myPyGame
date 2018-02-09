@@ -4,6 +4,7 @@
 
 import pygame
 
+# Player's character - Jumps and shoots!
 class Pygaman(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super(Pygaman, self).__init__()
@@ -35,6 +36,7 @@ class Pygaman(pygame.sprite.Sprite):
         self.x += self.move_speed
         self.y += self.vert_speed
 
+    # Handles sprite image selection based on movement
     def render(self, frames=20, counter=0):
         frame = counter % frames
         sprite_index = frame / (frames / 2)
@@ -53,17 +55,19 @@ class Pygaman(pygame.sprite.Sprite):
             elif self.direction == 'left':
                 return pygame.transform.flip(self.run_anim[0], True, False)
 
+    # Handles player falling and stopping at edge of screen. TODO: Platform collision!
     def gravity(self, window):
         if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
             self.vert_speed = 0
             self.jump_count = 0
         elif (self.y + self.rect.height) < window.height:
             self.vert_speed += 0.5
-
+            
     def shoot(self, pellets):
         if len(pellets) < 4:
             pellets.add(Pellet(self.x, self.y + 10, self.direction, speedmod=self.move_speed))
 
+# Bullets fired by the player!
 class Pellet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, speedmod=0):
         super(Pellet, self).__init__()
@@ -163,6 +167,7 @@ class Baddie(pygame.sprite.Sprite):
     def shoot(self, badpellets):
         badpellets.add(BadPellet(self.x, self.y + 20, self.direction))
 
+# Platforms for the player to jump on!
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super(Platform, self).__init__()
@@ -175,6 +180,7 @@ class Platform(pygame.sprite.Sprite):
     def getRect(self):
         return (self.x, self.y, self.width, self.height)
 
+# Handles screen size
 class Window(object):
     def __init__(self, width, height):
         self.width = width
@@ -238,6 +244,7 @@ def main():
         counter += 1
         for event in pygame.event.get():
             pressed = pygame.key.get_pressed()
+
             if pressed[pygame.K_RIGHT]:
                 player.direction = 'right'
                 player.move_speed = 3
