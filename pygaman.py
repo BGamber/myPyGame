@@ -33,9 +33,7 @@ class Pygaman(pygame.sprite.Sprite):
                     self.jump_count = 0
         
         self.x += self.move_speed
-        self.rect.x += self.move_speed
         self.y += self.vert_speed
-        self.rect.y += self.vert_speed
 
     def render(self, frames=20, counter=0):
         frame = counter % frames
@@ -82,9 +80,8 @@ class Pellet(pygame.sprite.Sprite):
 
     def update(self, window):
         self.rect = pygame.Rect(self.x, self.y, self.rect.height, self.rect.width)
-        if self.direction == 'left':
+        if self.direction == 'left' and self.speed > 0:
             self.speed = -self.speed
-            self.direction = 'leftx'
         self.x += self.speed + self.speedmod
         if self.x > window.width or self.x < 0:
             self.kill()
@@ -114,11 +111,54 @@ class BadPellet(Pellet):
             self.kill()
 
 class Baddie(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction='right', moving=False):
+    def __init__(self, x, y, move_speed=4, direction='right', moving=False):
+        super(Baddie, self).__init__()
         self.x = x
         self.y = y
+        self.img1 = pygame.image.load('baddie1.png').convert_alpha()
+        self.img2 = pygame.image.load('baddie2.png').convert_alpha()
+        self.walk_anim = [self.img1, self.img2]
+        self.move_speed = move_speed
+        self.vert_speed = 0
         self.direction = direction
         self.moving = moving
+
+    def update(self, window, platforms):
+        self.rect = pygame.Rect(self.x, self.y, 30, 40)
+        self.gravity(window)
+
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                if self.rect.bottom >= (platform.rect.top + self.vert_speed) and \
+                self.rect.right >= platform.rect.left and self.rect.left <= platform.rect.right and \
+                self.vert_speed >= 0:
+                    self.y = (platform.rect.top - self.rect.height) + 1
+                    self.vert_speed = 0
+
+                if self.rect.left <= platform.rect.left:
+                    self.direction = 'right'
+                elif self.rect.right >= platform.rect.right:
+                    self.direction = 'left'
+
+        if self.direction == 'right' and self.move_speed < 0:
+            self.move_speed = -self.move_speed
+        elif self.direction == 'left' and self.move_speed > 0:
+            self.move_speed = -self.move_speed
+        
+        self.x += self.move_speed
+        self.y += self.vert_speed
+
+    def render(self, frames=10, counter=0):
+        frame = counter % frames
+        sprite_index = frame / (frames / 2)
+        return self.walk_anim[sprite_index]
+
+    def gravity(self, window):
+        if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
+            self.vert_speed = 0
+            self.jump_count = 0
+        elif (self.y + self.rect.height) < window.height:
+            self.vert_speed += 0.5
 
     def shoot(self, badpellets):
         badpellets.add(BadPellet(self.x, self.y + 20, self.direction))
@@ -149,9 +189,11 @@ def main():
     clock = pygame.time.Clock()
 
     player = Pygaman(40, 550)
-
     pellets = pygame.sprite.Group()
+
+    baddies = pygame.sprite.Group()
     badpellets = pygame.sprite.Group()
+
     platforms = pygame.sprite.Group()
 
     stage0 = [
@@ -172,7 +214,16 @@ def main():
         Platform(300, 545, 50, 10)
     ]
 
+    enemies0 = [
+
+    ]
+
+    enemies1 = [
+        Baddie(295, 540, moving=True)
+    ]
+
     stages = [stage0, stage1]
+    enemies = [enemies0, enemies1]
     current_stage = 1 ## Reset to 0 for game start
     counter = 0
     playing = True
@@ -182,6 +233,8 @@ def main():
                 platform.kill()
             for platform in stages[current_stage]:
                 platforms.add(platform)
+            for enemy in enemies[current_stage]:
+                baddies.add(enemy)
         counter += 1
         for event in pygame.event.get():
             pressed = pygame.key.get_pressed()
@@ -204,6 +257,9 @@ def main():
         window.screen.fill(bg)
         player.update(window, platforms)
         window.screen.blit(player.render(counter=counter), (player.x, player.y))
+        for baddie in baddies:
+            baddie.update(window, platforms)
+            window.screen.blit(baddie.render(counter=counter), (baddie.x, baddie.y))
         for pellet in pellets:
             pellet.update(window)
             window.screen.blit(pellet.render(counter=counter), (pellet.x, pellet.y))
