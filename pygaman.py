@@ -316,10 +316,12 @@ def main():
                 player.move_speed = -3
             else:
                 player.move_speed = 0
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_UP and player.jump_count < 2:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_UP and \
+            player.jump_count < 2 and not player.stage_complete:
                 player.vert_speed = -7
                 player.jump_count += 1
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and \
+            not player.stage_complete and len(players) > 0:
                 player.shoot(pellets)
             if event.type == pygame.QUIT:
                 playing = False
