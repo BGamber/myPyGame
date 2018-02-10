@@ -2,7 +2,7 @@
 ### A platform shooter in the style of Jump-and-Shoot-Man
 ### Ben Gamber
 
-import pygame
+import pygame, copy
 
 # Player's character - Jumps and shoots!
 class Pygaman(pygame.sprite.Sprite):
@@ -228,6 +228,7 @@ def main():
     clock = pygame.time.Clock()
     textF = pygame.font.Font(pygame.font.get_default_font(), 36)
     textB = pygame.font.Font(pygame.font.get_default_font(), 38)
+    text_lives = pygame.font.Font(pygame.font.get_default_font(), 12)
     players = pygame.sprite.Group()
     pellets = pygame.sprite.Group()
 
@@ -279,6 +280,7 @@ def main():
     counter = 0
     death_timer = 0
     win_timer = 0
+    player_lives = 2
     playing = True
     while playing:
         if counter == 0:
@@ -287,14 +289,20 @@ def main():
             if len(players) > 0:
                 for player in players:
                     player.kill()
-            player = player_list[current_stage]
+            player = copy.copy(player_list[current_stage])
             players.add(player)
             for platform in platforms:
                 platform.kill()
             for platform in stages[current_stage]:
                 platforms.add(platform)
+            for baddie in baddies:
+                baddie.kill()
             for enemy in enemies[current_stage]:
-                baddies.add(enemy)
+                baddies.add(copy.copy(enemy))
+            for pellet in pellets:
+                pellet.kill()
+            for badpellet in badpellets:
+                badpellet.kill()
         counter += 1
         for event in pygame.event.get():
             pressed = pygame.key.get_pressed()
@@ -338,22 +346,32 @@ def main():
                 window.screen.blit(textB.render('YOU WIN', 0, bg), (299, 249))
                 window.screen.blit(textF.render('YOU WIN', 0, blue), (300, 250))
                 win_timer += 1
-                if win_timer >= 100:
+                if win_timer >= 120:
                     playing = False
             else:
                 window.screen.blit(textB.render('STAGE COMPLETE', 0, bg), (249, 249))
                 window.screen.blit(textF.render('STAGE COMPLETE', 0, blue), (250, 250))
                 win_timer += 1
-                if win_timer >= 100:
+                if win_timer >= 90:
                     counter = 0
                     current_stage += 1
 
         elif len(players) < 1:
-            window.screen.blit(textB.render('YOU LOSE', 0, bg), (299, 249))
-            window.screen.blit(textF.render('YOU LOSE', 0, red), (300, 250))
-            death_timer += 1
-            if death_timer >= 100:
-                playing = False
+            if player_lives == 0:
+                window.screen.blit(textB.render('YOU LOSE', 0, bg), (299, 249))
+                window.screen.blit(textF.render('YOU LOSE', 0, red), (300, 250))
+                death_timer += 1
+                if death_timer >= 120:
+                    playing = False
+            else:
+                window.screen.blit(textB.render('YOU DIED', 0, bg), (299, 249))
+                window.screen.blit(textF.render('YOU DIED', 0, white), (300, 250))
+                death_timer += 1
+                if death_timer >= 90:
+                    counter = 0
+                    player_lives -= 1
+        
+        window.screen.blit(text_lives.render('Lives: %s' % player_lives, 0, white), (50, 550))
 
         pygame.display.update()
         clock.tick(60)
