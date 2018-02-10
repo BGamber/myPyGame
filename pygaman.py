@@ -36,8 +36,9 @@ class Pygaman(pygame.sprite.Sprite):
                     self.vert_speed = 0
                     self.jump_count = 0
         
-        self.x += self.move_speed
-        self.y += self.vert_speed
+        if not self.stage_complete:
+            self.x += self.move_speed
+            self.y += self.vert_speed
 
     # Handles sprite image selection based on movement
     def render(self, frames=20, counter=0):
@@ -307,10 +308,10 @@ def main():
         for event in pygame.event.get():
             pressed = pygame.key.get_pressed()
 
-            if pressed[pygame.K_RIGHT]:
+            if pressed[pygame.K_RIGHT] and not player.stage_complete:
                 player.direction = 'right'
                 player.move_speed = 3
-            elif pressed[pygame.K_LEFT]:
+            elif pressed[pygame.K_LEFT] and not player.stage_complete:
                 player.direction = 'left'
                 player.move_speed = -3
             else:
