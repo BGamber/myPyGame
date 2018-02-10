@@ -6,7 +6,7 @@ import pygame
 
 # Player's character - Jumps and shoots!
 class Pygaman(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, direction='right'):
         super(Pygaman, self).__init__()
         self.x = x
         self.y = y
@@ -16,7 +16,7 @@ class Pygaman(pygame.sprite.Sprite):
         self.run2 = pygame.image.load('pygaman2.png').convert_alpha()
         self.jump = pygame.image.load('pygaman3.png').convert_alpha()
         self.run_anim = [self.run1, self.run2]
-        self.direction = 'right'
+        self.direction = direction
         self.rect = pygame.Rect(self.x, self.y, 30, 40)
         self.jump_count = 0
         self.stage_complete = False
@@ -58,11 +58,10 @@ class Pygaman(pygame.sprite.Sprite):
             elif self.direction == 'left':
                 return pygame.transform.flip(self.run_anim[0], True, False)
 
-    # Handles player falling and stopping at edge of screen.
+    # Handles player falling and dying at edge of screen.
     def gravity(self, window):
         if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
-            self.vert_speed = 0
-            self.jump_count = 0
+            self.kill() # Player dies if touching the bottom of the window
         elif (self.y + self.rect.height) < window.height:
             self.vert_speed += 0.5
             
@@ -123,8 +122,7 @@ class Baddie(pygame.sprite.Sprite):
 
     def gravity(self, window):
         if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
-            self.vert_speed = 0
-            self.jump_count = 0
+            self.kill() # Baddie dies if touching the bottom of the window
         elif (self.y + self.rect.height) < window.height:
             self.vert_speed += 0.5
 
@@ -239,7 +237,8 @@ def main():
     platforms = pygame.sprite.Group()
 
     player_list = [
-    Pygaman(50, 350)
+    Pygaman(50, 350),
+    Pygaman(550, 500, direction='left')
     ]
 
     stage0 = [
@@ -283,6 +282,8 @@ def main():
     playing = True
     while playing:
         if counter == 0:
+            death_timer = 0
+            win_timer = 0
             if len(players) > 0:
                 for player in players:
                     player.kill()
@@ -320,7 +321,7 @@ def main():
             window.screen.blit(player.render(counter=counter), (player.x, player.y))
         for baddie in baddies:
             baddie.update(window, platforms)
-            if counter % 120 == 0:
+            if counter % 60 == 0:
                 baddie.shoot(badpellets)
             window.screen.blit(baddie.render(counter=counter), (baddie.x, baddie.y))
         for pellet in pellets:
@@ -333,11 +334,20 @@ def main():
             pygame.draw.rect(window.screen, platform.color, platform.getRect(), 0)
 
         if player.stage_complete == True:
-            window.screen.blit(textB.render('YOU WIN', 0, bg), (299, 249))
-            window.screen.blit(textF.render('YOU WIN', 0, blue), (300, 250))
-            win_timer += 1
-            if win_timer >= 100:
-                playing = False ## TODO: Load new stage here
+            if current_stage == len(stages) - 1: # Final Stage
+                window.screen.blit(textB.render('YOU WIN', 0, bg), (299, 249))
+                window.screen.blit(textF.render('YOU WIN', 0, blue), (300, 250))
+                win_timer += 1
+                if win_timer >= 100:
+                    playing = False
+            else:
+                window.screen.blit(textB.render('STAGE COMPLETE', 0, bg), (249, 249))
+                window.screen.blit(textF.render('STAGE COMPLETE', 0, blue), (250, 250))
+                win_timer += 1
+                if win_timer >= 100:
+                    counter = 0
+                    current_stage += 1
+
         elif len(players) < 1:
             window.screen.blit(textB.render('YOU LOSE', 0, bg), (299, 249))
             window.screen.blit(textF.render('YOU LOSE', 0, red), (300, 250))
