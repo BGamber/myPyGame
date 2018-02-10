@@ -98,9 +98,9 @@ class Baddie(pygame.sprite.Sprite):
                     self.y = (platform.rect.top - self.rect.height) + 1
                     self.vert_speed = 0
 
-                if self.rect.left <= platform.rect.left:
+                if self.moving == True and self.rect.left <= platform.rect.left:
                     self.direction = 'right'
-                elif self.rect.right >= platform.rect.right:
+                elif self.moving == True and self.rect.right >= platform.rect.right:
                     self.direction = 'left'
 
         if self.direction == 'right' and self.move_speed < 0:
@@ -231,8 +231,6 @@ def main():
     textF = pygame.font.Font(pygame.font.get_default_font(), 36)
     textB = pygame.font.Font(pygame.font.get_default_font(), 38)
     players = pygame.sprite.Group()
-    player = Pygaman(40, 550)
-    players.add(player)
     pellets = pygame.sprite.Group()
 
     baddies = pygame.sprite.Group()
@@ -240,8 +238,15 @@ def main():
 
     platforms = pygame.sprite.Group()
 
+    player_list = [
+    Pygaman(50, 350)
+    ]
+
     stage0 = [
-        Platform(400, 600, 50, 10)
+        Platform(40, 400, 300, 10),
+        Platform(350, 350, 50, 10),
+        Platform(410, 400, 300, 10),
+        Platform(700, 380, 20, 20, color=blue, is_goal=True)
     ]
 
     stage1 = [
@@ -261,7 +266,7 @@ def main():
     ]
 
     enemies0 = [
-
+        Baddie(350, 300, direction='left', moving=False)
     ]
 
     enemies1 = [
@@ -271,13 +276,18 @@ def main():
 
     stages = [stage0, stage1]
     enemies = [enemies0, enemies1]
-    current_stage = 1 ## Reset to 0 for game start
+    current_stage = 0
     counter = 0
     death_timer = 0
     win_timer = 0
     playing = True
     while playing:
         if counter == 0:
+            if len(players) > 0:
+                for player in players:
+                    player.kill()
+            player = player_list[current_stage]
+            players.add(player)
             for platform in platforms:
                 platform.kill()
             for platform in stages[current_stage]:
