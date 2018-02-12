@@ -12,6 +12,10 @@ class Pygaman(pygame.sprite.Sprite):
         self.y = y
         self.move_speed = 0
         self.vert_speed = 0
+        self.shoot_sound = pygame.mixer.Sound('audio/Pew__008.wav')
+        self.death_sound = pygame.mixer.Sound('audio/Ouch__002.wav')
+        self.jump_sound = pygame.mixer.Sound('audio/Jump__004.wav')
+        self.win_sound = pygame.mixer.Sound('audio/Teleport__003.wav')
         self.run1 = pygame.image.load('pygaman1.png').convert_alpha()
         self.run2 = pygame.image.load('pygaman2.png').convert_alpha()
         self.jump = pygame.image.load('pygaman3.png').convert_alpha()
@@ -62,12 +66,14 @@ class Pygaman(pygame.sprite.Sprite):
     # Handles player falling and dying at edge of screen.
     def gravity(self, window):
         if self.y >= window.height:
+            self.death_sound.play()
             self.kill() # Player dies if touching the bottom of the window
 
         self.vert_speed += 0.5
             
     def shoot(self, pellets):
         if len(pellets) < 4:
+            self.shoot_sound.play()
             pellets.add(Pellet(self.x, self.y + 10, self.direction, speedmod=self.move_speed))
 
 # Enemies! Get past them all to win!
@@ -76,6 +82,7 @@ class Baddie(pygame.sprite.Sprite):
         super(Baddie, self).__init__()
         self.x = x
         self.y = y
+        self.death_sound = pygame.mixer.Sound('audio/Explosion__004.wav')
         self.img1 = pygame.image.load('baddie1.png').convert_alpha()
         self.img2 = pygame.image.load('baddie2.png').convert_alpha()
         self.walk_anim = [self.img1, self.img2]
@@ -93,6 +100,7 @@ class Baddie(pygame.sprite.Sprite):
         if self.rect.colliderect(player.rect):
             player.x = -20
             player.y = -20
+            player.death_sound.play()
             player.kill()
 
         for platform in platforms:
@@ -162,6 +170,7 @@ class Pellet(pygame.sprite.Sprite):
     def detect_collision(self, targets):
         for target in targets:
             if self.rect.colliderect(target.rect):
+                target.death_sound.play()
                 target.kill()
                 self.kill()
 
@@ -196,6 +205,9 @@ class BadPellet(pygame.sprite.Sprite):
         if self.rect.colliderect(player.rect):
             player.x = -20
             player.y = -20
+            player.rect.x = -20
+            player.rect.y = -20
+            player.death_sound.play()
             player.kill()
             self.kill()
 
@@ -232,6 +244,7 @@ def main():
     red = (250, 10, 10)
     blue = (25, 50, 250)
     pygame.init()
+    pygame.mixer.init()
     window = Window(800, 600)
     clock = pygame.time.Clock()
     textF = pygame.font.Font(pygame.font.get_default_font(), 36)
@@ -287,6 +300,12 @@ def main():
         Baddie(545, 140, moving=True),
     ]
 
+    music_list = [
+        'audio/Juhani Junkala [Retro Game Music Pack] Level 1.wav',
+        'audio/Juhani Junkala [Retro Game Music Pack] Level 2.wav',
+        'audio/Juhani Junkala [Retro Game Music Pack] Level 3.wav',
+    ]
+
     stages = [stage0, stage1]
     enemies = [enemies0, enemies1]
     current_stage = 0
@@ -297,6 +316,8 @@ def main():
     playing = True
     while playing:
         if counter == 0:
+            pygame.mixer.music.load(music_list[current_stage])
+            pygame.mixer.music.play(-1)
             death_timer = 0
             win_timer = 0
             if len(players) > 0:
@@ -317,6 +338,19 @@ def main():
             for badpellet in badpellets:
                 badpellet.kill()
         counter += 1
+
+        if win_timer == 1:
+            pygame.mixer.music.stop()
+            player.win_sound.play()
+            if current_stage == len(stages) - 1:
+                pygame.mixer.music.load('audio/Juhani Junkala [Retro Game Music Pack] Title Screen.wav')
+                pygame.mixer.music.play(0)
+        if death_timer == 1:
+            pygame.mixer.music.stop()
+            if player_lives == 0:
+                pygame.mixer.music.load('audio/Juhani Junkala [Retro Game Music Pack] Ending.wav')
+                pygame.mixer.music.play(0)
+
         for event in pygame.event.get():
             pressed = pygame.key.get_pressed()
 
@@ -330,6 +364,7 @@ def main():
                 player.move_speed = 0
             if event.type == pygame.KEYDOWN and event.key == pygame.K_UP and \
             player.jump_count < 2 and not player.stage_complete:
+                player.jump_sound.play()
                 player.vert_speed = -7
                 player.jump_count += 1
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and \
@@ -361,7 +396,7 @@ def main():
                 window.screen.blit(textB.render('YOU WIN', 0, bg), (299, 249))
                 window.screen.blit(textF.render('YOU WIN', 0, blue), (300, 250))
                 win_timer += 1
-                if win_timer >= 120:
+                if win_timer >= 180:
                     playing = False
             else:
                 window.screen.blit(textB.render('STAGE COMPLETE', 0, bg), (249, 249))
@@ -376,7 +411,8 @@ def main():
                 window.screen.blit(textB.render('YOU LOSE', 0, bg), (299, 249))
                 window.screen.blit(textF.render('YOU LOSE', 0, red), (300, 250))
                 death_timer += 1
-                if death_timer >= 120:
+                if death_timer >= 180:
+                    pygame.mixer.music.stop()
                     playing = False
             else:
                 window.screen.blit(textB.render('YOU DIED', 0, bg), (299, 249))
