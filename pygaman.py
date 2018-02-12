@@ -252,6 +252,7 @@ def main():
     textF = pygame.font.Font(pygame.font.get_default_font(), 36)
     textB = pygame.font.Font(pygame.font.get_default_font(), 38)
     text_lives = pygame.font.Font(pygame.font.get_default_font(), 12)
+    instructions = pygame.font.Font(pygame.font.get_default_font(), 16)
     players = pygame.sprite.Group()
     pellets = pygame.sprite.Group()
 
@@ -412,6 +413,12 @@ def main():
             window.screen.blit(badpellet.render(counter=counter), (badpellet.x, badpellet.y))
         for platform in stages[current_stage]:
             pygame.draw.rect(window.screen, platform.color, platform.getRect(), 0)
+
+        # Display Gameplay Instructions at start of game
+        if current_stage == 0 and counter < 180:
+            window.screen.blit(instructions.render('Left/Right Arrow: Move', 0, white), (100, 200))
+            window.screen.blit(instructions.render('Up Arrow: Jump', 0, white), (100, 220))
+            window.screen.blit(instructions.render('Spacebar: Shoot', 0, white), (100, 240))
 
         if player.stage_complete == True:
             if current_stage == len(stages) - 1: # Final Stage
