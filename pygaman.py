@@ -135,9 +135,10 @@ class Baddie(pygame.sprite.Sprite):
             return self.walk_anim[0]
 
     def gravity(self, window):
-        if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
+        if self.y >= window.height:
+            self.death_sound.play()
             self.kill() # Baddie dies if touching the bottom of the window
-        elif (self.y + self.rect.height) < window.height:
+        else:
             self.vert_speed += 0.5
 
     def shoot(self, badpellets):
