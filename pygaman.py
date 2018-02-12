@@ -260,7 +260,8 @@ def main():
 
     player_list = [
     Pygaman(50, 350),
-    Pygaman(550, 500, direction='left')
+    Pygaman(550, 500, direction='left'),
+    Pygaman(90, 90)
     ]
 
     stage0 = [
@@ -286,6 +287,15 @@ def main():
         Platform(30, 75, 20, 20, color=blue, is_goal=True)
     ]
 
+    stage2 = [
+        Platform(80, 100, 50, 10),
+        Platform(70, 400, 270, 10),
+        Platform(360, 450, 50, 10),
+        Platform(430, 400, 270, 10),
+        Platform(700, 350, 50, 10),
+        Platform(730, 330, 20, 20, color=blue, is_goal=True)
+    ]
+
     enemies0 = [
         Baddie(350, 300, direction='left', moving=False)
     ]
@@ -300,14 +310,23 @@ def main():
         Baddie(545, 140, moving=True),
     ]
 
+    enemies2 = [
+        Baddie(70, 360, moving=True),
+        Baddie(110, 360, moving=True),
+        Baddie(150, 360, moving=True),
+        Baddie(430, 360, moving=True),
+        Baddie(470, 360, moving=True),
+        Baddie(510, 360, moving=True)
+    ]
+
     music_list = [
         'audio/Juhani Junkala [Retro Game Music Pack] Level 1.wav',
         'audio/Juhani Junkala [Retro Game Music Pack] Level 2.wav',
         'audio/Juhani Junkala [Retro Game Music Pack] Level 3.wav',
     ]
 
-    stages = [stage0, stage1]
-    enemies = [enemies0, enemies1]
+    stages = [stage0, stage1, stage2]
+    enemies = [enemies0, enemies1, enemies2]
     current_stage = 0
     counter = 0
     death_timer = 0
@@ -340,6 +359,7 @@ def main():
         counter += 1
 
         if win_timer == 1:
+            player_lives += 1
             pygame.mixer.music.stop()
             player.win_sound.play()
             if current_stage == len(stages) - 1:
