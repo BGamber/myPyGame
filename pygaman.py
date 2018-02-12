@@ -61,10 +61,10 @@ class Pygaman(pygame.sprite.Sprite):
 
     # Handles player falling and dying at edge of screen.
     def gravity(self, window):
-        if (self.y + self.rect.height) >= (window.height - self.vert_speed) and self.vert_speed > 0:
+        if self.y >= window.height:
             self.kill() # Player dies if touching the bottom of the window
-        elif (self.y + self.rect.height) < window.height:
-            self.vert_speed += 0.5
+
+        self.vert_speed += 0.5
             
     def shoot(self, pellets):
         if len(pellets) < 4:
@@ -85,10 +85,15 @@ class Baddie(pygame.sprite.Sprite):
         self.moving = moving
         self.shoot_counter = 0
 
-    def update(self, window, platforms):
+    def update(self, window, platforms, player):
         self.rect = pygame.Rect(self.x, self.y, 40, 40)
         self.gravity(window)
         self.shoot_counter += 1
+
+        if self.rect.colliderect(player.rect):
+            player.x = -20
+            player.y = -20
+            player.kill()
 
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
@@ -189,6 +194,8 @@ class BadPellet(pygame.sprite.Sprite):
     
     def detect_collision(self, player):
         if self.rect.colliderect(player.rect):
+            player.x = -20
+            player.y = -20
             player.kill()
             self.kill()
 
@@ -336,7 +343,7 @@ def main():
             player.update(window, platforms)
             window.screen.blit(player.render(counter=counter), (player.x, player.y))
         for baddie in baddies:
-            baddie.update(window, platforms)
+            baddie.update(window, platforms, player)
             if counter % 60 == 0:
                 baddie.shoot(badpellets)
             window.screen.blit(baddie.render(counter=counter), (baddie.x, baddie.y))
