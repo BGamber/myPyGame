@@ -238,6 +238,7 @@ class Window(object):
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption('Pygaman')
 
 def main():
     bg = (10, 25, 50)
