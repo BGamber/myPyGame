@@ -417,7 +417,7 @@ def main():
         # Display Gameplay Instructions at start of game
         if current_stage == 0 and counter < 180:
             window.screen.blit(instructions.render('Left/Right Arrow: Move', 0, white), (100, 200))
-            window.screen.blit(instructions.render('Up Arrow: Jump', 0, white), (100, 220))
+            window.screen.blit(instructions.render('Up Arrow: Jump/Double Jump', 0, white), (100, 220))
             window.screen.blit(instructions.render('Spacebar: Shoot', 0, white), (100, 240))
 
         if player.stage_complete == True:
