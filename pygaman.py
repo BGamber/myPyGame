@@ -256,8 +256,8 @@ def main():
         Platform(700, 195, 50, 10),
         Platform(600, 245, 50, 10),
         Platform(500, 295, 50, 10),
-        Platform(250, 345, 100, 10),
         Platform(400, 345, 100, 10),
+        Platform(250, 345, 100, 10),
         Platform(100, 395, 100, 10),
         Platform(200, 445, 50, 10),
         Platform(250, 495, 50, 10),
@@ -271,8 +271,13 @@ def main():
     ]
 
     enemies1 = [
+        Baddie(255, 490),
+        Baddie(180, 390, moving=True),
+        Baddie(400, 330, moving=True),
+        Baddie(605, 220, direction='left'),
         Baddie(145, 140, moving=True),
-        Baddie(200, 550, direction='left', moving=False)
+        Baddie(345, 140, moving=True),
+        Baddie(545, 140, moving=True),
     ]
 
     stages = [stage0, stage1]
