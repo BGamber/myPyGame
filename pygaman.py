@@ -317,6 +317,7 @@ def main():
     while playing:
         if counter == 0:
             pygame.mixer.music.load(music_list[current_stage])
+            pygame.mixer.music.set_volume(0.25)
             pygame.mixer.music.play(-1)
             death_timer = 0
             win_timer = 0
